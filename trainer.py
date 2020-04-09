@@ -390,14 +390,12 @@ class AdvTrainer(BaseTrainer):
         avg_qa_loss = 0
         avg_dis_loss = 0
         iter_lst = [self.get_iter(self.features_lst, self.args)]
-        num_batches = sum([len(iterator[0]) for iterator in iter_lst])
+        num_batches = sum([len(iterator) for iterator in iter_lst])
         for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.epochs):
             start = time.time()
             self.model.train()
             batch_step = 1
-            for data_loader, sampler in iter_lst:
-                if self.args.distributed:
-                    sampler.set_epoch(epoch)
+            for data_loader in iter_lst:
 
                 for i, batch in enumerate(data_loader, start=1):
                     input_ids, input_mask, seg_ids, start_positions, end_positions, labels = batch
