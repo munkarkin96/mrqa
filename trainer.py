@@ -202,14 +202,14 @@ class BaseTrainer(object):
             data_loader = DataLoader(train_data, num_workers=args.workers, pin_memory=True,
                                      sampler=train_sampler, batch_size=args.batch_size)
         else:
-            weights = make_weights_for_balanced_classes(all_labels.detach().cpu().numpy().tolist(), self.args.num_classes)
-            weights = torch.DoubleTensor(weights)
-            train_sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
+            #weights = make_weights_for_balanced_classes(all_labels.detach().cpu().numpy().tolist(), self.args.num_classes)
+            #weights = torch.DoubleTensor(weights)
+            #train_sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
             data_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=None,
-                                                      sampler=train_sampler, num_workers=args.workers,
+                                                      num_workers=args.workers,
                                                       worker_init_fn=self.set_random_seed(self.args.random_seed), pin_memory=True, drop_last=True)
 
-        return data_loader, train_sampler
+        return data_loader#, train_sampler
 
     def save_model(self, epoch, loss):
         loss = round(loss, 3)
@@ -228,14 +228,12 @@ class BaseTrainer(object):
         avg_loss = 0
         global_step = 1
         iter_lst = [self.get_iter(self.features_lst, self.args)]
-        num_batches = sum([len(iterator[0]) for iterator in iter_lst])
+        num_batches = sum([len(iterator) for iterator in iter_lst])
         for epoch in range(self.args.start_epoch, self.args.start_epoch + self.args.epochs):
             self.model.train()
             start = time.time()
             batch_step = 1
-            for data_loader, sampler in iter_lst:
-                if self.args.distributed:
-                    sampler.set_epoch(epoch)
+            for data_loader in iter_lst:
 
                 for i, batch in enumerate(data_loader, start=1):
                     input_ids, input_mask, seg_ids, start_positions, end_positions, _ = batch
